@@ -13,16 +13,11 @@ maxRange = 1900,
 thrust = minRange,
 toggle[2] = {1500,1099};
 
-int joy_a_,joy_b_, joy_xbox_;
-
-
-
-
+int joy_a_,joy_b_, joy_lb_;
 
 bool armed = false;
 
 roscopter::RC rc_out;
-
 
 void twist_callback(const geometry_msgs::Twist& twist_msg_in) //this also scales the joystick reading
 {
@@ -36,7 +31,8 @@ void joy_callback(const sensor_msgs::Joy& joy_msg_in) //this also scales the joy
 {
         joy_a_ = joy_msg_in.buttons[0];         //arms the robot
         joy_b_ = joy_msg_in.buttons[1];         //disarms the robot
-        joy_xbox_ = toggle[ joy_msg_in.buttons[8]];     //toggle flight mode
+	joy_lb_ = toggle[ joy_msg_in.buttons[4]];     //toggle flight mode
+
 }
 
 enum Commands
@@ -60,7 +56,7 @@ void resetController(ros::Publisher rc_pub)
 	rc_out.channel[1] = midRange;	//pitc set back to midpoint
 	rc_out.channel[2] = minRange; //thrust to min
 	rc_out.channel[3] = midRange;	//yaw back to midpoint
-	rc_out.channel[4] = midRange;	//setting the mode to stabelize         
+	//rc_out.channel[4] = midRange;	//setting the mode to stabelize         
 	rc_pub.publish(rc_out);
 }
 
@@ -90,7 +86,6 @@ int main(int argc, char** argv)
 	while(ros::ok())
 	{
 	ros::spinOnce();
-
 		if(joy_a_ == true && !armed)
 		{
 			//resetController(rc_pub);
@@ -111,7 +106,7 @@ int main(int argc, char** argv)
 			rc_out.channel[1] = pitch;
 			rc_out.channel[2] = thrust;
 			rc_out.channel[3] =  yaw;
-			rc_out.channel[4] = joy_xbox_;
+			rc_out.channel[4] = joy_lb_;
 	}
 
 	rc_pub.publish(rc_out);
