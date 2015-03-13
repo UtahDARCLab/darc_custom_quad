@@ -4,7 +4,8 @@
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Joy.h>
 #include <roscopter/RC.h>
-#include <roscopter/APMCommand.h>
+//#include <roscopter/APMCommand.h>
+#include <std_srvs/Empty.h>
 
 
 int roll, pitch, yaw, minRange = 1100,
@@ -35,6 +36,7 @@ void joy_callback(const sensor_msgs::Joy& joy_msg_in) //this also scales the joy
 
 }
 
+/*
 enum Commands
 {
   CMD_LAUNCH = 1,
@@ -48,7 +50,7 @@ enum Commands
   CMD_SET_LAND = 9,
   RETURN_RC_CONTROL = 10
 };
-
+*/
 
 void resetController(ros::Publisher rc_pub)
 {
@@ -74,12 +76,13 @@ int main(int argc, char** argv)
 	twist_sub = node.subscribe("new_u",1,twist_callback);
 
 	ros::Publisher rc_pub;
-	rc_pub = node.advertise<roscopter::RC>("apm/send_rc",1);
+	rc_pub = node.advertise<roscopter::RC>("send_rc",1);
 
-	ros::ServiceClient client = node.serviceClient<roscopter::APMCommand>("apm/command");
-	roscopter::APMCommand srv;
-
-
+	//ros::ServiceClient client = node.serviceClient<roscopter::APMCommand>("apm/command");
+	//roscopter::APMCommand srv;
+        ros::ServiceClient armClient = node.serviceClient<std_srvs::Empty>("/arm");
+	ros::ServiceClient disarmClient = node.serviceClient<std_srvs::Empty>("/disarm");
+        std_srvs::Empty srv;
 
 	float dead_zone = .15;
 	
@@ -89,15 +92,17 @@ int main(int argc, char** argv)
 		if(joy_a_ == true && !armed)
 		{
 			//resetController(rc_pub);
-			srv.request.command = CMD_ARM;
-			if(client.call(srv)){;}
+			//srv.request.command = CMD_ARM;
+			//if(client.call(srv)){;}
+			if(armClient.call(srv)){;}
 			armed = !armed;
 		}
 		else if(joy_b_ == true && armed)
 		{
 			//resetController(rc_pub);
-			srv.request.command = CMD_DISARM;
-			if(client.call(srv)){;}
+			//srv.request.command = CMD_DISARM;
+			//if(client.call(srv)){;}
+			if(disarmClient.call(srv)){;}
 			armed = !armed;
 		}
 		else
