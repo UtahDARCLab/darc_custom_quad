@@ -36,22 +36,6 @@ void joy_callback(const sensor_msgs::Joy& joy_msg_in) //this also scales the joy
 
 }
 
-/*
-enum Commands
-{
-  CMD_LAUNCH = 1,
-  CMD_LAND = 2,
-  CMD_ARM = 3,
-  CMD_DISARM = 4,
-  CMD_SET_STABILIZE = 5,
-  CMD_SET_ALT_HOLD = 6,
-  CMD_SET_AUTO = 7,
-  CMD_SET_LOITER = 8,
-  CMD_SET_LAND = 9,
-  RETURN_RC_CONTROL = 10
-};
-*/
-
 void resetController(ros::Publisher rc_pub)
 {
 	rc_out.channel[0] = midRange;	//roll set back to midpoint	
@@ -61,7 +45,6 @@ void resetController(ros::Publisher rc_pub)
 	//rc_out.channel[4] = midRange;	//setting the mode to stabelize         
 	rc_pub.publish(rc_out);
 }
-
 
 int main(int argc, char** argv)
 {
