@@ -13,7 +13,7 @@ midRange = 1500,
 maxRange = 1900,
 thrust = minRange;
 //toggle[2] = {1500,1099};
-stableMode = 1500;
+int stableMode = 1500;
 int joy_a_,joy_b_, joy_lb_, joy_back_, joy_start_;
 
 bool armed = false;
