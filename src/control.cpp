@@ -1,110 +1,64 @@
-/* This file has been created to try and fly the quadcopter using the joystick */
+// This file has been created to try and fly the quadcopter using the joystick
 
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Joy.h>
 #include <roscopter/RC.h>
-//#include <roscopter/APMCommand.h>
 #include <std_srvs/Empty.h>
+#include <iostream>
 
+int min_range = 1000, max_range = 2000;
+int stable_mode = 1500;
 
-int roll, pitch, yaw, minRange = 1100,
-midRange = 1500,
-maxRange = 1900,
-thrust = minRange;
-//toggle[2] = {1500,1099};
-int stableMode = 1500;
-int joy_a_,joy_b_, joy_lb_, joy_back_, joy_start_;
-
-bool armed = false;
-bool killSwitch = false;
 roscopter::RC rc_out;
-
-void twist_callback(const geometry_msgs::Twist& twist_msg_in) //this also scales the joystick reading
-{
-	pitch = 2000.0 - 500.0*(1.0 + twist_msg_in.angular.y);		//Pitc -- rotation about the y axis
-	roll = 2000.0 - 500.0*(1.0 + twist_msg_in.angular.x);		//Roll -- rotation about the x axis
-	yaw = 2000.0 - 500.0*(1.0 + twist_msg_in.angular.z);		//Yaw -- rotation about the z axis
-	thrust = 1000.0 + 1000.0*(twist_msg_in.linear.z);		//Thrust 
+int roll, pitch, yaw, thrust = min_range;
+void twist_callback(const geometry_msgs::Twist& twist_msg_in) { //this also scales the joystick reading
+  roll   = max_range - 0.5*(max_range - min_range)*(1.0 + twist_msg_in.angular.x);  // Roll -- rotation about the x axis 
+  pitch  = max_range - 0.5*(max_range - min_range)*(1.0 + twist_msg_in.angular.y);  // Pitch --rotation about the y axis
+  yaw    = max_range - 0.5*(max_range - min_range)*(1.0 + twist_msg_in.angular.z);  // Yaw -- rotation about the z axis
+  thrust = min_range + (max_range - min_range)*twist_msg_in.linear.z;  // Thrust
 }
 
-void joy_callback(const sensor_msgs::Joy& joy_msg_in) //this also scales the joystick reading
-{
-        //joy_a_ = joy_msg_in.buttons[0];         //arms the robot
-        //joy_b_ = joy_msg_in.buttons[1];         //disarms the robot
-	    //joy_lb_ = toggle[ joy_msg_in.buttons[4]];     //toggle flight mode
-	    joy_back_ = joy_msg_in.buttons[6];             //arm
-        joy_start_ = joy_msg_in.buttons[7];            //disarm
-
-
+roscopter::RC rc_in;
+void rc_callback(const roscopter::RC& rc_msg_in) {
+  rc_in = rc_msg_in;
 }
 
-void resetController(ros::Publisher rc_pub)
-{
-	rc_out.channel[0] = midRange;	//roll set back to midpoint	
-	rc_out.channel[1] = midRange;	//pitc set back to midpoint
-	rc_out.channel[2] = minRange; //thrust to min
-	rc_out.channel[3] = midRange;	//yaw back to midpoint
-	//rc_out.channel[4] = midRange;	//setting the mode to stabelize         
-	rc_pub.publish(rc_out);
-}
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "control");
+  ros::NodeHandle node;
+  ros::Rate loop_rate(50);
 
-int main(int argc, char** argv)
-{
-	ros::init(argc, argv, "control");
-	ros::NodeHandle node;
-	ros::Rate loop_rate(50);
+  ros::Subscriber twist_sub;
+  //twist_sub = node.subscribe("new_u",1,twist_callback);
+  twist_sub = node.subscribe("desired_u",1,twist_callback);
 
-	ros::Subscriber joy_sub;
-	joy_sub = node.subscribe("joy",1,joy_callback);
+  ros::Subscriber rc_sub;
+  rc_sub = node.subscribe("rc", 1, rc_callback);
 
-	ros::Subscriber twist_sub;
-	twist_sub = node.subscribe("new_u",1,twist_callback);
+  ros::Publisher rc_pub;
+  rc_pub = node.advertise<roscopter::RC>("send_rc",1);
 
-	ros::Publisher rc_pub;
-	rc_pub = node.advertise<roscopter::RC>("send_rc",1);
-
-	//ros::ServiceClient client = node.serviceClient<roscopter::APMCommand>("apm/command");
-	//roscopter::APMCommand srv;
-    ros::ServiceClient armClient = node.serviceClient<std_srvs::Empty>("/arm");
-	ros::ServiceClient disarmClient = node.serviceClient<std_srvs::Empty>("/disarm");
-	std_srvs::Empty srv;
-
-	float dead_zone = .15;
-	
-	while(ros::ok())
-	{
-	ros::spinOnce();
-		if(joy_back_ == true && !armed)
-		{
-			//resetController(rc_pub);
-			//srv.request.command = CMD_ARM;
-			//if(client.call(srv)){;}
-			if(armClient.call(srv)){;}
-			armed = !armed;
-			thrust = 0;
-		}
-		else if(joy_start_ == true && armed)
-		{
-			//resetController(rc_pub);
-			//srv.request.command = CMD_DISARM;
-			//if(client.call(srv)){;}
-			if(disarmClient.call(srv)){;}
-			armed = !armed;
-		}
-		else
-		{
-			rc_out.channel[0] = roll;
-			rc_out.channel[1] = pitch;
-			rc_out.channel[2] = thrust;
-			rc_out.channel[3] =  yaw;
-			rc_out.channel[4] = stableMode;
-	}
-
-	rc_pub.publish(rc_out);
-	loop_rate.sleep();
-	}
-	return 0;
+  while (ros::ok()) {
+    ros::spinOnce();
+    if (rc_in.channel[6] < 1250 || rc_in.channel[6] > 1750) {  // Gryo switch at 0, fly manually
+      rc_out.channel[0] = 0;
+      rc_out.channel[1] = 0;
+      rc_out.channel[2] = 0;
+      rc_out.channel[3] = 0;
+      rc_out.channel[4] = 0;
+    } else {
+//      std::cout << "r: " << roll << ", p: " << pitch << ", y: " << yaw << ", t: " << thrust << std::endl;
+      rc_out.channel[0] = roll;
+      rc_out.channel[1] = pitch;
+      rc_out.channel[2] = thrust;
+      rc_out.channel[3] = yaw;
+      rc_out.channel[4] = stable_mode;
+    }
+    rc_pub.publish(rc_out);
+    loop_rate.sleep();
+  }
+  return 0;
 }
 
 
