@@ -6,15 +6,19 @@ project(darc_custom_quad)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
-  roscopter
+  std_msgs
   sensor_msgs 
   roscpp
   rospy
+#  mavros
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(cmake_modules REQUIRED)
+find_package(Eigen REQUIRED)
+include_directories(${EIGEN_INCLUDE_DIRS})
+add_definitions(${EIGEN_DEFINITIONS})
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -105,21 +109,18 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-# add_executable(darc_custom_quad_node src/darc_custom_quad_node.cpp)
-add_executable(control src/control.cpp)
+ add_executable(darc_custom_quad_node src/darc_custom_quad_node.cpp)
+#add_executable(control src/control.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(darc_custom_quad_node darc_custom_quad_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-#target_link_libraries(darc_custom_quad_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(darc_custom_quad_node
+   ${catkin_LIBRARIES}
+ )
 
-target_link_libraries(control
-	${catkin_LIBRARIES}
-)
 #############
 ## Install ##
 #############
