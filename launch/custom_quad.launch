@@ -1,5 +1,5 @@
 <launch>
-  <node pkg="darc_custom_quad" type="darc_custom_quad_node" name="Drone_Driver" output="screen"/>
-  <node pkg="darc_rc_fly" type="darc_rc_fly_node" name="RC_Input" output="screen"/>
+  <node pkg="darc_custom_quad" type="darc_custom_quad_node" name="Drone_Driver" output="screen" respawn="true"/>
+  <node pkg="darc_rc_fly" type="darc_rc_fly_node" name="RC_Input" output="screen" respawn="true"/>
   <include file="$(find mavros)/launch/px4.launch"/>
 </launch>

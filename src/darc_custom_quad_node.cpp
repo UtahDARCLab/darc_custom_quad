@@ -50,8 +50,8 @@ int main(int argc, char** argv) {
 
     Eigen::Matrix3f m;
     m = Eigen::AngleAxisf(rz, Eigen::Vector3f::UnitZ()) *
-          Eigen::AngleAxisf(ry, Eigen::Vector3f::UnitY()) *
-          Eigen::AngleAxisf(rx, Eigen::Vector3f::UnitX());
+        Eigen::AngleAxisf(ry, Eigen::Vector3f::UnitY()) *
+        Eigen::AngleAxisf(rx, Eigen::Vector3f::UnitX());
     Eigen::Quaternionf q(m);
     set_out.orientation.x = q.x();
     set_out.orientation.y = q.y();
