@@ -13,6 +13,7 @@
 
 const float MAX_ANGLE = 20.0 * M_PI / 180.0;  // rad
 const float MAX_YAW_RATE = 60 * M_PI / 180.0;
+const float MAX_CLIMB_RATE = 0.75;  // m/s
 
 float rx, ry, vz, vw;
 void twist_callback(const geometry_msgs::Twist& twist_msg_in) { //this also scales the joystick reading
@@ -25,7 +26,7 @@ void twist_callback(const geometry_msgs::Twist& twist_msg_in) { //this also scal
   vw = twist_msg_in.angular.z;  // YAW RATE
   vw = ((vw < -1.0) ? -1.0 : ((vw > 1.0) ? 1.0 : vw)) * MAX_YAW_RATE;
 
-  vz = 0.5*twist_msg_in.linear.z + 0.5;  // THROTTLE
+  vz = 0.5 * twist_msg_in.linear.z + 0.5;  // THROTTLE
   vz = ((vz < 0.0) ? 0.0 : ((vz > 1.0) ? 1.0 : vz));
 }
 
@@ -47,7 +48,6 @@ int main(int argc, char** argv) {
     ros::spinOnce();
 
     rz += vw / 100.0;
-
     Eigen::Matrix3f m;
     m = Eigen::AngleAxisf(rz, Eigen::Vector3f::UnitZ()) *
         Eigen::AngleAxisf(ry, Eigen::Vector3f::UnitY()) *
