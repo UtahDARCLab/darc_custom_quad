@@ -13,7 +13,6 @@
 
 const float MAX_ANGLE = 20.0 * M_PI / 180.0;  // rad
 const float MAX_YAW_RATE = 60 * M_PI / 180.0;
-const float MAX_CLIMB_RATE = 0.75;  // m/s
 
 float rx, ry, vz, vw;
 void twist_callback(const geometry_msgs::Twist& twist_msg_in) { //this also scales the joystick reading
@@ -43,7 +42,7 @@ int main(int argc, char** argv) {
   set_out.type_mask = 7;  // Ignore rates
 
   float rz = 0.0;
-
+  rz = -M_PI / 2.0;
   while (ros::ok()) {
     ros::spinOnce();
 
