@@ -15,7 +15,7 @@
 #include <vector>
 #include <numeric>
 
-const float MAX_ANGLE = 15.0 * M_PI / 180.0;  // rad
+const float MAX_ANGLE = 10.0 * M_PI / 180.0;  // rad
 const float MAX_YAW_RATE = 60 * M_PI / 180.0;
 
 float rx, ry, vz, vw;
